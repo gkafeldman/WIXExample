@@ -1,0 +1,148 @@
+<?xml version='1.0' encoding='windows-1252'?>
+<Wix xmlns='http://schemas.microsoft.com/wix/2006/wi' 
+     xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
+	
+	<!-- Always put in an upgrade code. Once used, the upgrade code is set in stone. -->
+	<Product Name='Foo Bar 1.0' Id='714deed9-b0ea-4ced-ad6d-1f76f329233a' UpgradeCode='cce106e3-10c3-42b4-b7b5-3e68c2250785' Language='1033' Codepage='1252' Version='1.2.0' Manufacturer='MyCompany'>
+
+	<!-- Set Id to a GUID during auto-build to identify an individual build. This ID refers to a specific MSI file.-->
+	<!-- '*' instructs WIX to automatically assign a GUID -->
+	<!-- Set InstallerVersion='200' for 64-bit only installations. -->
+	<!-- 1033 = English (United States) -->
+	<!-- 1252 refers to the character encoding code page (If you're familiar with UTF-8, then that is what this is, although UTF-8 is not supported by Windows Installer. -->
+	<Package Id='*' Description="Foobar 1.0 Installer" Manufacturer='MyCompany' InstallerVersion='100' Languages='1033' Compressed='yes' SummaryCodepage='1252' />
+
+
+	<Upgrade Id='8c61c0af-9e62-4227-bbd0-d32836626b41'>
+		<UpgradeVersion OnlyDetect='yes' Property='NEWERFOUND' Minimum='1.0.0' IncludeMinimum='no' />
+	</Upgrade>
+
+	<CustomAction Id='NoDowngrade' Error='A later version of [ProductName] is already installed.' />
+	<InstallExecuteSequence>
+		<Custom Action='NoDowngrade' After='FindRelatedProducts'>NEWERFOUND</Custom>
+	</InstallExecuteSequence>
+	<Media Id='1' Cabinet='Sample.cab' EmbedCab='yes' DiskPrompt='CD-ROM #1' />
+	<Property Id='DiskPrompt' Value="Foobar 1.0 Installation [1]" />
+
+    <?define MySourcePath = "$(env.USERPROFILE)\Documents\Visual Studio 2013\Projects\WIXExample\Foobar\Foobar\bin\Release" ?>
+    
+	<Directory Id='TARGETDIR' Name='SourceDir'>
+		<Directory Id='ProgramFilesFolder'>
+			<Directory Id='MyCompany' Name='MyCompany'>
+				<Directory Id="INSTALLDIR" Name="Foobar">
+
+					<Component Id="ApplicationFiles" Guid="a295671d-4091-42b1-b4ea-6783284a0d6a">
+						<File Id="ApplicationFile1" Source="$(var.MySourcePath)\Foobar.exe"/>
+					</Component>
+
+					<Component Id="SomeSupportFile" Guid="b8dcc810-1c64-439d-be3d-39b099d5e61c">
+						<File Id="SomeSupportFile1" Source="$(var.MySourcePath)\Foobar.pdb"/>
+					</Component>
+
+					<Component Id="ConfigFile" Guid="9bf62d7a-3e2a-41d6-b64d-b51c56489ece">
+						<!-- Name not necessary unless you actually want to change it -->
+						<File Id="App.config" Name="Foobar.exe.config" Vital="yes" KeyPath="yes" Source="$(var.MySourcePath)\Foobar.exe.config" />
+		  
+						<!-- Use the XmlFile util, XPath to the required tag and set the value-->
+						<util:XmlFile Id="AppConfigSetOutputFolder" Action="setValue" Permanent="yes" File="[INSTALLDIR]Foobar.exe.config"
+							ElementPath="/configuration/userSettings/Foobar.Properties.Settings/setting[\[]@name='OutputFolder'[\]]/value"
+							Value='[OUTPUTFOLDER]' />
+						<util:XmlFile Id="AppConfigSetDatabaseServer" Action="setValue" Permanent="yes" File="[INSTALLDIR]Foobar.exe.config"
+							ElementPath="/configuration/userSettings/Foobar.Properties.Settings/setting[\[]@name='DatabaseServer'[\]]/value"
+							Value='[DATABASESERVER]' />
+						<util:XmlFile Id="AppConfigSetDatabaseUsername" Action="setValue" Permanent="yes" File="[INSTALLDIR]Foobar.exe.config"
+							ElementPath="/configuration/userSettings/Foobar.Properties.Settings/setting[\[]@name='DatabaseUsername'[\]]/value"
+							Value='[DBUSERNAME]' />
+						<util:XmlFile Id="AppConfigSetDatabasePassword" Action="setValue" Permanent="yes" File="[INSTALLDIR]Foobar.exe.config"
+							ElementPath="/configuration/userSettings/Foobar.Properties.Settings/setting[\[]@name='DatabasePassword'[\]]/value"
+							Value='[DBPASSWORD]' />
+						<util:XmlFile Id="AppConfigSetDatabaseIntegratedSecurity" Action="setValue" Permanent="yes" File="[INSTALLDIR]Foobar.exe.config"
+							ElementPath="/configuration/userSettings/Foobar.Properties.Settings/setting[\[]@name='DatabaseIntegratedSecurity'[\]]/value"
+							Value='[BOOL_INTEGRATEDSECURITY]' />
+					</Component>
+
+					<!--Note the public installer property (no lowercase letters in its name). -->
+					<!--Use all uppercase letters if you want end users to have access to these properties. -->
+					<Directory Id="MYOUTPUTFOLDER" Name="Output">
+						<Component Id="MyOutputDir" Guid="1b9960ef-4d6f-4e7d-8e7f-699ec22b1925" SharedDllRefCount="no" KeyPath="no" NeverOverwrite="no" Permanent="no" Transitive="no" Win64="no" Location="either">
+							<CreateFolder />
+						</Component>
+					</Directory>
+				</Directory>
+			</Directory>
+		</Directory>
+	</Directory>
+
+	<Feature Id="DefaultFeature" Level="1">
+		<ComponentRef Id="ApplicationFiles"/>
+		<ComponentRef Id="SomeSupportFile"/>
+		<ComponentRef Id="ConfigFile"/>
+		<ComponentRef Id="MyOutputDir"/>
+    </Feature>
+
+	<UI Id="WixUI_MondoNoLicense">
+		<TextStyle Id="WixUI_Font_Normal" FaceName="Tahoma" Size="8" />
+		<TextStyle Id="WixUI_Font_Bigger" FaceName="Tahoma" Size="12" />
+		<TextStyle Id="WixUI_Font_Title" FaceName="Tahoma" Size="9" Bold="yes" />
+		<Property Id="DefaultUIFont" Value="WixUI_Font_Normal" />
+		<Property Id="WixUI_Mode" Value="Mondo" />
+		<DialogRef Id="ErrorDlg" />
+		<DialogRef Id="FatalError" />
+		<DialogRef Id="FilesInUse" />
+		<DialogRef Id="MsiRMFilesInUse" />
+		<DialogRef Id="PrepareDlg" />
+		<DialogRef Id="ProgressDlg" />
+		<DialogRef Id="ResumeDlg" />
+		<DialogRef Id="UserExit" />
+  
+		<Publish Dialog="BrowseDlg" Control="OK" Event="DoAction" Value="WixUIValidatePath" Order="3">1</Publish>
+		<Publish Dialog="BrowseDlg" Control="OK" Event="SpawnDialog" Value="InvalidDirDlg" Order="4">
+			<![CDATA[WIXUI_INSTALLDIR_VALID<>"1"]]></Publish>
+		<Publish Dialog="ExitDialog" Control="Finish" Event="EndDialog" Value="Return" Order="999">1</Publish>
+		<Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="InstallDirDlg">1</Publish>
+  
+		<Publish Dialog="InstallDirDlg" Control="Next" Event="NewDialog" Value="ConfigDlg">1</Publish>
+		<Publish Dialog="InstallDirDlg" Control="Back" Event="NewDialog" Value="WelcomeDlg">1</Publish>
+		<Publish Dialog="InstallDirDlg" Control="ChangeFolder" Property="_BrowseProperty" Value="[WIXUI_INSTALLDIR]" Order="1">1</Publish>
+		<Publish Dialog="InstallDirDlg" Control="ChangeFolder" Event="SpawnDialog" Value="BrowseDlg" Order="2">1</Publish>
+
+		<?include $(sys.CURRENTDIR)FoobarConfigDialog.wxi ?>
+
+		<Publish Dialog="ConfigDlg" Control="Next" Event="NewDialog" Value="DatabaseConnectionDlg">1</Publish>
+		<Publish Dialog="ConfigDlg" Control="Back" Event="NewDialog" Value="InstallDirDlg">1</Publish>
+		
+		<?include $(sys.CURRENTDIR)DBConfigDialog.wxi ?>
+
+		<Publish Dialog="DatabaseConnectionDlg" Control="Next" Event="NewDialog" Value="VerifyReadyDlg">1</Publish>
+		<Publish Dialog="DatabaseConnectionDlg" Control="Back" Event="NewDialog" Value="ConfigDlg">1</Publish>
+
+		<Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="DatabaseConnectionDlg" Order="1">1</Publish>
+	</UI>
+
+	<UIRef Id="WixUI_Common" />
+	
+	<Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR" />
+    <Property Id="CONFIG_OUTPUTDIR" Value="MYOUTPUTFOLDER"/>
+    <Property Id="OUTPUTFOLDER">temp</Property>
+	<Property Id="DATABASESERVER" Secure="yes"></Property>
+	<Property Id="DBUSERNAME" Secure="yes"></Property>
+	<Property Id="DBPASSWORD" Secure="yes"></Property>
+	<Property Id="INTEGRATEDSECURITY" Secure="yes"></Property>
+	<Property Id="BOOL_INTEGRATEDSECURITY" Secure="yes"></Property>
+
+    <!--A custom action to assign the folder path to a Property that keeps it before the CostFinalise action.-->
+    <!--A custom action avoids the following warning: To set a property with the value of another property, use a CustomAction with Property and Value attributes.-->
+    <CustomAction Id="OUTPUTFOLDER" Property="OUTPUTFOLDER" Value="[MYOUTPUTFOLDER]"></CustomAction>
+
+	<CustomAction Id="SETBOOLINTEGRATEDSECURITY_FALSE" Property="BOOL_INTEGRATEDSECURITY" Value="false"></CustomAction>
+    <CustomAction Id="SETBOOLINTEGRATEDSECURITY_TRUE" Property="BOOL_INTEGRATEDSECURITY" Value="true"></CustomAction>
+
+    <InstallExecuteSequence>
+		<!-- call the custom actions to set BOOL_ENABLEEXTERNALREPORT based on whether the "ENABLEEXTERNALREPORT" is empty - not ticked, or 1 - ticked -->
+		<Custom Action="SETBOOLINTEGRATEDSECURITY_FALSE" After="CostFinalize">NOT INTEGRATEDSECURITY</Custom>
+		<Custom Action="SETBOOLINTEGRATEDSECURITY_TRUE" After="SETBOOLINTEGRATEDSECURITY_FALSE">INTEGRATEDSECURITY="1"</Custom>
+
+		<Custom Action="OUTPUTFOLDER" Before="CostFinalize"/>
+    </InstallExecuteSequence>
+  </Product>
+</Wix>

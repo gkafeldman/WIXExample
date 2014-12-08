@@ -1,0 +1,2 @@
+"%ProgramFiles(x86)%\WiX Toolset v3.8\bin\candle.exe" "%USERPROFILE%\Documents\Visual Studio 2013\Projects\WIXExample\Foobar.wxs" -ext WixUtilExtension
+"%ProgramFiles(x86)%\WiX Toolset v3.8\bin\light.exe" -out "%USERPROFILE%\Documents\Visual Studio 2013\Projects\WIXExample\Foobar.msi" "%USERPROFILE%\Documents\Visual Studio 2013\Projects\WIXExample\Foobar.wixobj" -ext WixUIExtension -ext WixUtilExtension
